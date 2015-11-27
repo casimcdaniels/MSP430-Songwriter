@@ -6,34 +6,112 @@
                                         ; outside this module
         ORG     0FFFEh
         DC16    init                    ; set reset vector to 'init' label
+       
 
         RSEG    CSTACK                  ; pre-declaration of segment
         
         RSEG    DATA16_HEAP
         RSEG    DATA16_N
        
-standby         DW     00000001b        
-playback        DW     00000010b
-record          DW     00000100b
+standby         DW     100b        
+playback        DW     010b
+record          DW     001b
         
         RSEG    CODE                    ; place program in 'CODE' segment
        
      
 init:   MOV     #SFE(CSTACK), SP        ; set up stack
-        
-      
-main:   NOP                             ; main program
         MOV.W   #WDTPW+WDTHOLD,&WDTCTL  ; Stop watchdog timer
-        
+
         BIS.B   #00000111b, &P1DIR      ; Set P1.(0-2) to outputs to the RGB
                                         ; and P1.(3-7) as inputs from 5
+                                        ; 5-position mode switch
+        MOV.B   #00000000b, &P1OUT
+                                        
 SetLED MACRO mode
         bic.b #00000111b, &P1OUT
         bis.b mode, &P1OUT
-        ENDM                                       ; 5-position mode switch
+        MOV.B mode, R4
+        ENDM 
+        
+             
+      
+main:   NOP                             ; main program
+        
+        
+        BIS.B #01010000b, &P1IE               ; Interrupt on Input Pin 1.1
+        BIS.B #01010000b, &P1IES              ; High To Low Edge
+        BIC.B #01010000b, &P1IFG
+        BIS.W #GIE, SR
        
-        SetLED standby
-        JMP $                           ; jump to current location '$'
+        MOV.B standby, R4
+        SetLED R4
+        
+        JMP $                                 ; jump to current location '$'
  
-                                       ; (endless loop)
-        END
+                                              ; (endless loop)
+       
+       
+
+      
+;-------------------------------------------------------------------------------
+;    5-Way Position Switch Handler
+;    Note: For the purpose of breadboard layout,
+;          all directions corresponding to the button
+;          are rotated clockwise, ie:
+;          "Right" on the button is physically DOWN
+;          "Left" on the button is physically UP
+;          "Down" on the button is physically RIGHT
+;          "Up" on the button is physically LEFT
+;-------------------------------------------------------------------------------
+P1_ISR:        
+
+     DirectionSwitch_begin:
+        BIC.B #111b, &P1IFG
+        MOV.B P1IFG, R5
+        
+        CMP #01000000b, R5
+        JNZ Left_end
+  
+        ; -------- Action: Set Mode ---------- ;
+        Left:                           
+           CMP #00000100b, R4                   ; Restrict Mode between 3 LSBits
+           JZ DirectionSwitch_end
+           
+           RLC R4
+           CLRC
+           SetLED R4 
+        
+           JMP DirectionSwitch_end
+        Left_end: 
+        
+        CMP #00010000b, R5
+        JNZ Right_end
+        
+        Right:                                  ; Restrict Mode between 3 LSBits
+           CMP #00000001b, R4
+           JZ DirectionSwitch_end
+           
+           RRC R4
+           CLRC
+           SetLED R4 
+           JMP DirectionSwitch_end
+           
+        Right_end: 
+        
+        ; --------------------------------- ;
+        
+       DirectionSwitch_end: 
+     bic.b   #01010000b,&P1IFG            ; P1.3 IFG Cleared
+     reti                                 ; Return from ISR
+                                          ;
+;------------------------------------------------------------------------------
+;           Interrupt Vectors
+;------------------------------------------------------------------------------
+     COMMON INTVEC                       ; Interrupt Vectors
+     ORG PORT1_VECTOR                    ; PORT1 Vector
+     DW P1_ISR                           ; define a word with value P1_ISR
+     END
+            
+            
+   

@@ -3,7 +3,7 @@ Warning[w29]: Parts of segment DATA16_N are initialized (as in module main), eve
 #                                                                              #
 #      IAR Universal Linker V6.3.4.78                                          #
 #                                                                              #
-#           Link time     =  27/Nov/2015  00:31:56                             #
+#           Link time     =  27/Nov/2015  15:58:58                             #
 #           Target CPU    =  MSP430                                            #
 #           List file     =  E:\repos\msp430-songwriter-dev\Debug\List\songwri #
 #                            ter.map                                           #
@@ -119,14 +119,26 @@ DATA16_N
            record                  0204 
     -------------------------------------------------------------------------
 <CODE> 1 (was CODE)
-  Relative segment, address: C000 - C01F (0x20 bytes), align: 1
+  Relative segment, address: C000 - C085 (0x86 bytes), align: 1
   Segment part 3. ROOT        Intra module refs:   Absolute parts
+                                                   Segment part 4
            ENTRY                   ADDRESS         REF BY
            =====                   =======         ======
-           main                    C004 
+           main                    C014 
            LOCAL                   ADDRESS         
            =====                   =======         
            init                    C000 
+           P1_ISR                  C03C 
+           DirectionSwitch_begin   C03C 
+           Left_end                C062 
+           Left                    C04C 
+           DirectionSwitch_end     C07E 
+           Right_end               C07E 
+           Right                   C068 
+    -------------------------------------------------------------------------
+INTVEC
+  Common segment, address: FFE0 - FFE5 (0x6 bytes), align: 1
+  Segment part 4. ROOT 
 
 
 
@@ -145,7 +157,8 @@ DATA16_I                                  0200                       dse    0
 DATA16_N                               0200 - 0205               6   rel    1
 DATA16_HEAP                            0206 - 0255              50   rel    1
 CSTACK                                 03B0 - 03FF              50   rel    1
-<CODE> 1                               C000 - C01F              20   rel    1
+<CODE> 1                               C000 - C085              86   rel    1
+INTVEC                                 FFE0 - FFE5               6   com    1
                                        FFFE - FFFF               2  aseg  
 
                 ****************************************
@@ -154,7 +167,7 @@ CSTACK                                 03B0 - 03FF              50   rel    1
                 *                                      *
                 ****************************************
 
-  32 bytes of CODE memory (+ 2 absolute )
+ 140 bytes of CODE memory (+ 2 absolute )
  166 bytes of DATA memory
 
 Errors: none
