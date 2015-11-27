@@ -8,12 +8,32 @@
         DC16    init                    ; set reset vector to 'init' label
 
         RSEG    CSTACK                  ; pre-declaration of segment
+        
+        RSEG    DATA16_HEAP
+        RSEG    DATA16_N
+       
+standby         DW     00000001b        
+playback        DW     00000010b
+record          DW     00000100b
+        
         RSEG    CODE                    ; place program in 'CODE' segment
-
+       
+     
 init:   MOV     #SFE(CSTACK), SP        ; set up stack
-
+        
+      
 main:   NOP                             ; main program
         MOV.W   #WDTPW+WDTHOLD,&WDTCTL  ; Stop watchdog timer
+        
+        BIS.B   #00000111b, &P1DIR      ; Set P1.(0-2) to outputs to the RGB
+                                        ; and P1.(3-7) as inputs from 5
+SetLED MACRO mode
+        bic.b #00000111b, &P1OUT
+        bis.b mode, &P1OUT
+        ENDM                                       ; 5-position mode switch
+       
+        SetLED standby
         JMP $                           ; jump to current location '$'
-                                        ; (endless loop)
+ 
+                                       ; (endless loop)
         END

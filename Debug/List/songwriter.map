@@ -1,8 +1,9 @@
+Warning[w29]: Parts of segment DATA16_N are initialized (as in module main), even though it is of type DATA (and thus not promable)
 ################################################################################
 #                                                                              #
 #      IAR Universal Linker V6.3.4.78                                          #
 #                                                                              #
-#           Link time     =  17/Nov/2015  18:35:22                             #
+#           Link time     =  27/Nov/2015  00:31:56                             #
 #           Target CPU    =  MSP430                                            #
 #           List file     =  E:\repos\msp430-songwriter-dev\Debug\List\songwri #
 #                            ter.map                                           #
@@ -23,30 +24,25 @@
 #                            rkbench 7.3\430\LIB\"                             #
 #                            -f                                                #
 #                            "C:\Program Files (x86)\IAR Systems\Embedded Work #
-#                            bench 7.3\430\config\linker\lnk430f149.xcl"       #
+#                            bench 7.3\430\config\linker\lnk430g2553.xcl"      #
 #                            (-cmsp430 -QCODE_I=CODE_ID -QTLS16_I=TLS16_ID     #
-#                            -D__iar_HWMUL=130 -Z(CONST)INFO=1000-10FF         #
-#                            -Z(CONST)INFOA=1080-10FF                          #
-#                            -Z(CONST)INFOB=1000-107F                          #
+#                            -Z(CONST)INFO=1000-10FF                           #
+#                            -Z(CONST)INFOA=10C0-10FF                          #
+#                            -Z(CONST)INFOB=1080-10BF                          #
+#                            -Z(CONST)INFOC=1040-107F                          #
+#                            -Z(CONST)INFOD=1000-103F                          #
 #                            -Z(DATA)DATA16_I,DATA16_Z,DATA16_N,TLS16_I=0200-0 #
-#                            9FF                                               #
+#                            3FF                                               #
 #                            -Z(DATA)DATA16_HEAP+_DATA16_HEAP_SIZE             #
 #                            -Z(DATA)CODE_I -Z(DATA)CSTACK+_STACK_SIZE#        #
 #                            -Z(CONST)DATA16_C,DATA16_ID,TLS16_ID,DIFUNCT,CHEC #
-#                            KSUM=1100-FFDF                                    #
-#                            -Z(CODE)CSTART,ISR_CODE,CODE_ID=1100-FFDF         #
-#                            -P(CODE)CODE=1100-FFDF -Z(CODE)INTVEC=FFE0-FFFF   #
-#                            -Z(CODE)RESET=FFFE-FFFF) -f                       #
-#                            "C:\Program Files (x86)\IAR Systems\Embedded Work #
-#                            bench 7.3\430\config\linker\multiplier.xcl"       #
-#                            (-e?Mul8Hw=?Mul8 -e?Mul16Hw=?Mul16                #
-#                            -e?Mul16to32uHw=?Mul16to32u                       #
-#                            -e?Mul16to32sHw=?Mul16to32s -e?Mul32Hw=?Mul32     #
-#                            -e_Mul64iHw=_Mul64i                               #
-#                            -e_Mul32u32uto64iHw=_Mul32u32uto64i               #
-#                            -e?Mul32fHw=_Mul32f -e_Mul64fHwPtr=_Mul64fPtr)    #
-#                            -D_STACK_SIZE=50 -rt -D_DATA16_HEAP_SIZE=50       #
-#                            -D_DATA20_HEAP_SIZE=50                            #
+#                            KSUM=C000-FFDD                                    #
+#                            -Z(CODE)CSTART,ISR_CODE,CODE_ID=C000-FFDD         #
+#                            -P(CODE)CODE=C000-FFDD                            #
+#                            -Z(CONST)SIGNATURE=FFDE-FFDF                      #
+#                            -Z(CODE)INTVEC=FFE0-FFFF                          #
+#                            -Z(CODE)RESET=FFFE-FFFF) -D_STACK_SIZE=50 -rt     #
+#                            -D_DATA16_HEAP_SIZE=50 -D_DATA20_HEAP_SIZE=50     #
 #                                                                              #
 #                           Copyright (C) 1987-2015 IAR Systems AB.            #
 ################################################################################
@@ -93,7 +89,6 @@ Absolute parts
            _DATA20_HEAP_SIZE       0050 
            _DATA16_HEAP_SIZE       0050 
            _STACK_SIZE             0050 
-           __iar_HWMUL             0130 
     *************************************************************************
 
   FILE NAME : E:\repos\msp430-songwriter-dev\Debug\Obj\asm.r43
@@ -103,22 +98,35 @@ Absolute parts
      FFFE - FFFF
            LOCAL                   ADDRESS         
            =====                   =======         
-           __MSP430F1471__         0000 
+           __MSP430G2203__         0000 
   SEGMENTS IN THE MODULE
   ======================
 CSTACK
-  Relative segment, address: 09B0, align: 1
+  Relative segment, address: 03B0, align: 1
   Segment part 0. ROOT 
     -------------------------------------------------------------------------
-<CODE> 1 (was CODE)
-  Relative segment, address: 1100 - 110D (0xe bytes), align: 1
-  Segment part 1. ROOT        Intra module refs:   Absolute parts
-           ENTRY                   ADDRESS         REF BY
-           =====                   =======         ======
-           main                    1104 
+DATA16_HEAP
+  Relative segment, address: 0206, align: 1
+  Segment part 1. ROOT 
+    -------------------------------------------------------------------------
+DATA16_N
+  Relative segment, address: 0200 - 0205 (0x6 bytes), align: 1
+  Segment part 2. ROOT        Intra module refs:   main
            LOCAL                   ADDRESS         
            =====                   =======         
-           init                    1100 
+           standby                 0200 
+           playback                0202 
+           record                  0204 
+    -------------------------------------------------------------------------
+<CODE> 1 (was CODE)
+  Relative segment, address: C000 - C01F (0x20 bytes), align: 1
+  Segment part 3. ROOT        Intra module refs:   Absolute parts
+           ENTRY                   ADDRESS         REF BY
+           =====                   =======         ======
+           main                    C004 
+           LOCAL                   ADDRESS         
+           =====                   =======         
+           init                    C000 
 
 
 
@@ -132,8 +140,12 @@ CSTACK
 
 SEGMENT              SPACE    START ADDRESS   END ADDRESS     SIZE  TYPE  ALIGN
 =======              =====    =============   ===========     ====  ====  =====
-CSTACK                                 09B0 - 09FF              50   rel    1
-<CODE> 1                               1100 - 110D               E   rel    1
+DATA16_Z                                  0200                       dse    0
+DATA16_I                                  0200                       dse    0
+DATA16_N                               0200 - 0205               6   rel    1
+DATA16_HEAP                            0206 - 0255              50   rel    1
+CSTACK                                 03B0 - 03FF              50   rel    1
+<CODE> 1                               C000 - C01F              20   rel    1
                                        FFFE - FFFF               2  aseg  
 
                 ****************************************
@@ -142,9 +154,9 @@ CSTACK                                 09B0 - 09FF              50   rel    1
                 *                                      *
                 ****************************************
 
- 14 bytes of CODE memory (+ 2 absolute )
- 80 bytes of DATA memory
+  32 bytes of CODE memory (+ 2 absolute )
+ 166 bytes of DATA memory
 
 Errors: none
-Warnings: none
+Warnings: 1
 
