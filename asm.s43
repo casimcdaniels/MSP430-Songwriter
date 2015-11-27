@@ -26,11 +26,22 @@ init:   MOV     #SFE(CSTACK), SP        ; set up stack
         BIS.B   #00000111b, &P1DIR      ; Set P1.(0-2) to outputs to the RGB
                                         ; and P1.(3-7) as inputs from 5
                                         ; 5-position mode switch
+      
+    
         MOV.B   #00000000b, &P1OUT
+        
+        BIC.W #CCIE,&TACCTL0
+        mov.w #8000,&TACCR0                   ; Setup count value
+        mov.w #TASSEL_1+MC_1,&TACTL           ; choose ACLK, count up mode 
+        
+        BIS.B #01010000b, &P1IE               ; Interrupt on Input Pin 1.1
+        BIS.B #01010000b, &P1IES              ; High To Low Edge
+        BIC.B #01010000b, &P1IFG              ; Set Interrupt Flag off
+        BIS.W #GIE, SR                        ; Enable Interrupts
                                         
 SetLED MACRO mode
-        bic.b #00000111b, &P1OUT
-        bis.b mode, &P1OUT
+        BIC.B #00000111b, &P1OUT
+        BIS.B mode, &P1OUT
         MOV.B mode, R4
         ENDM 
         
@@ -39,10 +50,7 @@ SetLED MACRO mode
 main:   NOP                             ; main program
         
         
-        BIS.B #01010000b, &P1IE               ; Interrupt on Input Pin 1.1
-        BIS.B #01010000b, &P1IES              ; High To Low Edge
-        BIC.B #01010000b, &P1IFG
-        BIS.W #GIE, SR
+       
        
         MOV.B standby, R4
         SetLED R4
@@ -50,9 +58,6 @@ main:   NOP                             ; main program
         JMP $                                 ; jump to current location '$'
  
                                               ; (endless loop)
-       
-       
-
       
 ;-------------------------------------------------------------------------------
 ;    5-Way Position Switch Handler
@@ -64,9 +69,12 @@ main:   NOP                             ; main program
 ;          "Down" on the button is physically RIGHT
 ;          "Up" on the button is physically LEFT
 ;-------------------------------------------------------------------------------
-P1_ISR:        
-
+P1_ISR:      
+     BIC.B   #01010000b, &P1IE
+     mov.w #CCIE,&TACCTL0                        ; TACCR0 interrupt enabled
+     
      DirectionSwitch_begin:
+        
         BIC.B #111b, &P1IFG
         MOV.B P1IFG, R5
         
@@ -102,15 +110,28 @@ P1_ISR:
         ; --------------------------------- ;
         
        DirectionSwitch_end: 
+     
      bic.b   #01010000b,&P1IFG            ; P1.3 IFG Cleared
-     reti                                 ; Return from ISR
-                                          ;
+     reti                                 ; Return from ISR  
+                                     
+                                     
+; ---------- TIMER0_A0 ISR ------------- ;
+
+TA0_ISR:
+      
+      BIC.W   CCIE, &TACCTL0
+      MOV.B   #01010000b, &P1IE
+      BIS.W #GIE, SR
+      reti
+
 ;------------------------------------------------------------------------------
 ;           Interrupt Vectors
 ;------------------------------------------------------------------------------
      COMMON INTVEC                       ; Interrupt Vectors
      ORG PORT1_VECTOR                    ; PORT1 Vector
      DW P1_ISR                           ; define a word with value P1_ISR
+     ORG TIMER0_A0_VECTOR
+     DW TA0_ISR
      END
             
             
