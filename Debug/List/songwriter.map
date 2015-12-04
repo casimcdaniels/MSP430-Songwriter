@@ -3,7 +3,7 @@ Warning[w29]: Parts of segment DATA16_N are initialized (as in module main), eve
 #                                                                              #
 #      IAR Universal Linker V6.3.4.78                                          #
 #                                                                              #
-#           Link time     =  27/Nov/2015  17:58:47                             #
+#           Link time     =  04/Dec/2015  16:03:17                             #
 #           Target CPU    =  MSP430                                            #
 #           List file     =  E:\repos\msp430-songwriter-dev\Debug\List\songwri #
 #                            ter.map                                           #
@@ -106,39 +106,82 @@ CSTACK
   Segment part 0. ROOT 
     -------------------------------------------------------------------------
 DATA16_HEAP
-  Relative segment, address: 0206, align: 1
+  Relative segment, address: 022C, align: 1
   Segment part 1. ROOT 
     -------------------------------------------------------------------------
 DATA16_N
-  Relative segment, address: 0200 - 0205 (0x6 bytes), align: 1
+  Relative segment, address: 0200 - 022B (0x2c bytes), align: 1
   Segment part 2. ROOT        Intra module refs:   main
            LOCAL                   ADDRESS         
            =====                   =======         
            standby                 0200 
            playback                0202 
            record                  0204 
+           note_c                  0206 
+           note_d                  0208 
+           note_e                  020A 
+           note_f                  020C 
+           note_g                  020E 
+           note_a                  0210 
+           note_b                  0212 
+           encoding_c              0214 
+           encoding_d              0216 
+           encoding_e              0218 
+           encoding_f              021A 
+           encoding_g              021C 
+           encoding_a              021E 
+           encoding_b              0220 
+           switch_up               0222 
+           switch_down             0224 
+           switch_right            0226 
+           switch_left             0228 
+           switch_center           022A 
     -------------------------------------------------------------------------
 <CODE> 1 (was CODE)
-  Relative segment, address: C000 - C0B3 (0xb4 bytes), align: 1
+  Relative segment, address: C000 - C131 (0x132 bytes), align: 1
   Segment part 3. ROOT        Intra module refs:   Absolute parts
                                                    Segment part 4
            ENTRY                   ADDRESS         REF BY
            =====                   =======         ======
-           main                    C03A 
+           main                    C058 
            LOCAL                   ADDRESS         
            =====                   =======         
            init                    C000 
-           P1_ISR                  C04E 
-           DirectionSwitch_begin   C05A 
-           Left_end                C080 
-           Left                    C06A 
-           DirectionSwitch_end     C09C 
-           Right_end               C09C 
-           Right                   C086 
-           TA0_ISR                 C0A4 
+           P2_ISR                  C05C 
+           BuildNote               C066 
+           KeyPressed_begin        C072 
+           Key_C_end               C07E 
+           Key_C                   C078 
+           KeyPressed_end          C0C6 
+           Key_D_end               C08A 
+           Key_D                   C084 
+           Key_E_end               C096 
+           Key_E                   C090 
+           Key_F_end               C0A2 
+           Key_F                   C09C 
+           Key_G_end               C0AE 
+           Key_G                   C0A8 
+           Key_A_end               C0BA 
+           Key_A                   C0B4 
+           Key_B_end               C0C6 
+           Key_B                   C0C6 
+           PitchShift              C0C6 
+           Direction_end           C0E2 
+           Direction_begin         C0D4 
+           Up_end                  C0DA 
+           Up_begin                C0D8 
+           Down_end                C0E2 
+           Down_Begin              C0E0 
+           P1_ISR                  C0E6 
+           DirectionSwitch_begin   C0E6 
+           Left_end                C10C 
+           Left                    C0F4 
+           DirectionSwitch_end     C12A 
+           Right_end               C12A 
+           Right                   C112 
     -------------------------------------------------------------------------
 INTVEC
-  Common segment, address: FFE0 - FFF3 (0x14 bytes), align: 1
+  Common segment, address: FFE0 - FFE7 (0x8 bytes), align: 1
   Segment part 4. ROOT 
 
 
@@ -155,11 +198,11 @@ SEGMENT              SPACE    START ADDRESS   END ADDRESS     SIZE  TYPE  ALIGN
 =======              =====    =============   ===========     ====  ====  =====
 DATA16_Z                                  0200                       dse    0
 DATA16_I                                  0200                       dse    0
-DATA16_N                               0200 - 0205               6   rel    1
-DATA16_HEAP                            0206 - 0255              50   rel    1
+DATA16_N                               0200 - 022B              2C   rel    1
+DATA16_HEAP                            022C - 027B              50   rel    1
 CSTACK                                 03B0 - 03FF              50   rel    1
-<CODE> 1                               C000 - C0B3              B4   rel    1
-INTVEC                                 FFE0 - FFF3              14   com    1
+<CODE> 1                               C000 - C131             132   rel    1
+INTVEC                                 FFE0 - FFE7               8   com    1
                                        FFFE - FFFF               2  aseg  
 
                 ****************************************
@@ -168,8 +211,8 @@ INTVEC                                 FFE0 - FFF3              14   com    1
                 *                                      *
                 ****************************************
 
- 200 bytes of CODE memory (+ 2 absolute )
- 166 bytes of DATA memory
+ 314 bytes of CODE memory (+ 2 absolute )
+ 204 bytes of DATA memory
 
 Errors: none
 Warnings: 1
