@@ -6,14 +6,275 @@
                                         ; outside this module
         ORG     0FFFEh
         DC16    init                    ; set reset vector to 'init' label
+       
 
         RSEG    CSTACK                  ; pre-declaration of segment
+        
+        RSEG    DATA16_HEAP
+        RSEG    DATA16_N
+       
+standby         DW     10000000b        
+playback        DW     01000000b
+record          DW     00100000b
+
+note_c         DW     261d
+note_d         DW     293d
+note_e         DW     329d
+note_f         DW     349d
+note_g         DW     392d
+note_a         DW     440d   
+note_b         DW     493d
+
+encoding_c         DW     000b
+encoding_d         DW     001b
+encoding_e         DW     010b
+encoding_f         DW     011b
+encoding_g         DW     100b
+encoding_a         DW     101b       
+encoding_b         DW     110b
+
+switch_up          DW     000001b
+switch_down        DW     001000b
+switch_right       DW     000010b
+switch_left        DW     010000b
+switch_center      DW     100000b
+
+SetLED MACRO mode
+        BIC.B #11100000b, &P2OUT
+        BIS.B mode, &P2OUT
+        MOV.B mode, R4
+        ENDM 
+        
+        
+        
         RSEG    CODE                    ; place program in 'CODE' segment
-
+       
+     
 init:   MOV     #SFE(CSTACK), SP        ; set up stack
-
-main:   NOP                             ; main program
         MOV.W   #WDTPW+WDTHOLD,&WDTCTL  ; Stop watchdog timer
-        JMP $                           ; jump to current location '$'
-                                        ; (endless loop)
-        END
+
+
+        ;      RGB LED Setup       ;
+        BIS.B   #11100000b, &P2DIR      ; Set P2.(0-2) to outputs to the RGB
+                                        ; and P2.(3-7) as inputs from 5
+                                        ; 5-position mode switch
+        BIC.B   #11000000b, P2SEL       ; Select GPIO on the XIN/XOUT
+        SetLED  standby, R4
+      
+        ;  5-Position Switch Setup ;
+        MOV.B #00111011b, &P1OUT             
+        BIS.B #00111011b, &P1IE               ; Interrupt on Input Pin 1.1
+        BIS.B #00111011b, &P1IES              ; High To Low Edge
+        BIC.B #00000000b, &P1IFG              ; Set Interrupt Flag off
+        ; ------------------------ ;
+        
+       
+        
+        ;   Buzzer Setup   ;
+        ;BIS.B #100b, &P1DIR
+        ;BIS.B #100b, &P1SEL
+        
+          
+        ; ------------------------ ;
+        
+        
+       
+        ;   Keyboard Setup ;
+        BIS.B #00000000b, &P2DIR              ; Set Input Modes for the Keyboard 
+        
+        
+        
+        MOV.W #0, R6
+        MOV.W #0, R7
+        BIS.B #00001111b, &P2IE               ; Interrupt on P2.0 - P2.3
+        BIS.B #00000111b, &P2IES              ; High To Low Edge (default first three outputs HIGH, with high bit LOW)
+        BIC.B #00001111b, &P2IFG              ; Set Interrupt Flag off
+        
+        ; ------------------------ ;
+        
+        
+        
+        BIS.W #GIE, SR                        ; Enable Interrupts
+                      
+
+        
+             
+      
+main:   NOP                             ; main program
+        
+   
+        
+        JMP $                                 ; jump to current location '$'
+                              
+ 
+                                              ; (endless loop)
+        
+;-------------------------------------------------------------------------------   
+;    Keypress Handler
+;-------------------------------------------------------------------------------   
+P2_ISR:
+      BIC.B #00011111b, &P2IFG                ; Clear interrupt flag on Buzzer
+      BIC.B #00001111b, R6                    ; Clear previous note
+      BuildNote:
+        BIS.B P2IN, R6                        ; Load Four Bit Encoding of Key
+        BIC.W #10000000b, R6                     ; Clear the extra input on Port2
+        XOR.B #0111b, R6
+      KeyPressed_begin:
+            CMP encoding_c, R6
+            JNZ Key_C_end
+            
+            Key_C:
+              MOV.W  note_c, R7
+              JMP KeyPressed_end
+            Key_C_end:
+            
+            
+            CMP encoding_d, R6
+            JNZ Key_D_end
+            
+            Key_D:
+              MOV.W  note_d, R7
+              JMP KeyPressed_end
+            Key_D_end:
+            
+            
+            CMP #encoding_e, R6
+            JNZ Key_E_end
+            
+            Key_E:
+              MOV.W  note_e, R7
+              JMP KeyPressed_end
+            Key_E_end:
+            
+            
+            CMP encoding_f, R6
+            JNZ Key_F_end
+            
+            Key_F:
+              MOV.W  note_f, R7
+              JMP KeyPressed_end
+            Key_F_end:
+            
+            
+            CMP encoding_g, R6
+            JNZ Key_G_end
+            
+            Key_G:
+              MOV.W  note_g, R7
+              JMP KeyPressed_end
+            Key_G_end:
+            
+            
+            CMP encoding_a, R6
+            JNZ Key_A_end
+            
+            Key_A:
+              MOV.W  note_a, R7
+              JMP KeyPressed_end
+            Key_A_end:
+            
+            
+            CMP encoding_b, R6
+              MOV.W  note_b, R7
+              JMP KeyPressed_end
+            JNZ Key_B_end
+            
+            Key_B:
+            Key_B_end:
+            
+      KeyPressed_end:
+        
+      PitchShift:
+        MOV.B P1IN, R8                          ; Load Input from 5-Position Switch
+        BIC.B #11010111b, R8                      ; Clear extraneous inputs (looking at up and down specifically)
+        
+        CMP #101000b, R8
+        JZ Direction_end
+        
+        Direction_begin:
+          CMP #1000b, R8
+          JNZ Up_end
+          
+          Up_begin:
+            RLA R7
+          Up_end:
+          
+          CMP #100000b, R8
+          JNZ Down_end
+          
+          Down_Begin:
+            RRA R7
+          Down_end:
+        Direction_end:
+        MOV.B #0,   R7              ; clear pitch shift
+        
+        
+      reti
+
+;-------------------------------------------------------------------------------
+;    5-Way Position Switch Handler
+;    Note: For the purpose of breadboard layout,
+;          all directions corresponding to the button
+;          are rotated clockwise, ie:
+;          "Right" on the button is physically DOWN
+;          "Left" on the button is physically UP
+;          "Down" on the button is physically RIGHT
+;          "Up" on the button is physically LEFT
+;-------------------------------------------------------------------------------
+P1_ISR:       
+     
+     DirectionSwitch_begin:
+        
+        BIC.B #000100b, &P1IFG
+        MOV.B P1IFG, R5
+        
+        CMP switch_left, R5
+        JNZ Left_end
+  
+        ; -------- Action: Set Mode ---------- ;
+        Left:                           
+           CMP standby, R4                   ; Restrict Mode between 3 LSBits
+           JZ DirectionSwitch_end
+           
+           RLC R4
+           CLRC
+           SetLED R4 
+        
+           JMP DirectionSwitch_end
+        Left_end: 
+        
+        CMP switch_right, R5
+        JNZ Right_end
+        
+        Right:                                  ; Restrict Mode between 3 LSBits
+           CMP record, R4
+           JZ DirectionSwitch_end
+           
+           RRC R4
+           CLRC
+           SetLED R4 
+           JMP DirectionSwitch_end
+           
+        Right_end: 
+        
+        ; --------------------------------- ;
+        
+       DirectionSwitch_end: 
+     
+     bic.b   #00111011b,&P1IFG            ; P1.3 IFG Cleared
+     reti                                 ; Return from ISR  
+                                     
+                                     
+
+;------------------------------------------------------------------------------
+;           Interrupt Vectors
+;------------------------------------------------------------------------------
+     COMMON INTVEC                       ; Interrupt Vectors
+     ORG PORT1_VECTOR                    ; PORT1 Vector
+     DW P1_ISR                           ; define a word with value P1_ISR
+     
+     ORG PORT2_VECTOR                    ; PORT2 Vector for keys
+     DW P2_ISR                           ; define a word with value P2_ISR
+END   
+            
+   
